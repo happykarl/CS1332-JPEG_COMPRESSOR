@@ -7,14 +7,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-/**
- * 
- */
-
-/**
- * @author Karl
- *
- */
 public class MatrixViewerLayout extends GridLayout {
 	JpegPanel panel;
 	public MatrixViewerLayout(JpegPanel _panel, int _cols, int _rows){
