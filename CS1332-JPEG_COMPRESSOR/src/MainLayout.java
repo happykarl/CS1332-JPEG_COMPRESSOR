@@ -12,7 +12,8 @@ import javax.swing.JTextField;
 public class MainLayout extends GroupLayout {
 	JLabel lbImportDir, lbExportDir;
 	JTextField tfImportDir, tfExportDir;
-	JButton btImportDir, btProcess;
+	JButton btImportDir, btShowMatrix, btDCT;
+	Compressor cp;
 	
 	public MainLayout(Container host) {
 		super(host);
@@ -27,7 +28,8 @@ public class MainLayout extends GroupLayout {
 		tfExportDir = new JTextField("Export Directory...", 50);
 		
 	    btImportDir = new JButton("File Select");
-	    btProcess = new JButton("Start Compression");
+	    btShowMatrix = new JButton("Show Matrix");
+	    btDCT = new JButton("DCT Process");
 
 	    // Vertex Group
 	    GroupLayout.SequentialGroup leftToRight = this.createSequentialGroup();
@@ -35,12 +37,14 @@ public class MainLayout extends GroupLayout {
 	    GroupLayout.ParallelGroup columnLeft = this.createParallelGroup();
 		columnLeft.addComponent(lbImportDir);
 		columnLeft.addComponent(lbExportDir);
+		columnLeft.addComponent(btDCT);
 		leftToRight.addGroup(columnLeft);
 	    
 		GroupLayout.ParallelGroup columnCenter = this.createParallelGroup();
 		columnCenter.addComponent(tfImportDir);
 		columnCenter.addComponent(tfExportDir);
-		columnCenter.addComponent(btProcess);
+		columnCenter.addComponent(btShowMatrix);
+		
 		leftToRight.addGroup(columnCenter);
 		
 		GroupLayout.ParallelGroup columnRight = this.createParallelGroup();
@@ -61,7 +65,8 @@ public class MainLayout extends GroupLayout {
 		topToBottom.addGroup(rowMiddle);
 		
 		GroupLayout.ParallelGroup rowBottom = this.createParallelGroup();
-		rowBottom.addComponent(btProcess);
+		rowBottom.addComponent(btShowMatrix);
+		rowBottom.addComponent(btDCT);
 		topToBottom.addGroup(rowBottom);
 		
 		this.setHorizontalGroup(leftToRight);
@@ -79,7 +84,9 @@ public class MainLayout extends GroupLayout {
 			if (rsVal == JFileChooser.APPROVE_OPTION) {
 				String fileDir = fileChooser.getCurrentDirectory().toString() + "\\" + fileChooser.getSelectedFile().getName();
 				tfImportDir.setText(fileDir);
-				btProcess.addActionListener(new Compressor(fileDir));
+				cp = new Compressor(fileDir);
+				btShowMatrix.addActionListener(cp);
+				btDCT.addActionListener(cp);
 			}
 			
 		}

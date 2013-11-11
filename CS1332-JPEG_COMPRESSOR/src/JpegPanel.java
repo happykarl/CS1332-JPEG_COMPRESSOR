@@ -28,7 +28,7 @@ public class JpegPanel extends JPanel {
 		case EIGHTBYEIGHT:
 			if(params.length == 2){
 				this.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-				eightByEightLayout = new EightByEightLayout(this, Compressor.MATRIX_SIZE, Compressor.MATRIX_SIZE);
+				eightByEightLayout = new EightByEightLayout(this, (int) params[0], (int) params[1], Compressor.MATRIX_SIZE, Compressor.MATRIX_SIZE);
 				this.setLayout(eightByEightLayout);
 			}
 			break;

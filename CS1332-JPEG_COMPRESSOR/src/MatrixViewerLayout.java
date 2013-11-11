@@ -39,6 +39,5 @@ public class MatrixViewerLayout extends GridLayout {
 			jf.setLocation(Compressor.width, 150);
 			jf.pack();
 		}
-		
 	}
 }
