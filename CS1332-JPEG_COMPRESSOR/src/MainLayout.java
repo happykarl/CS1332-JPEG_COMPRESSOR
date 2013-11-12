@@ -13,7 +13,7 @@ public class MainLayout extends GroupLayout {
 	JLabel lbImportDir, lbExportDir;
 	JTextField tfImportDir, tfExportDir;
 	JButton btImportDir, btShowMatrix, btDCT;
-	Compressor cp;
+	JpegCompressor cp;
 	
 	public MainLayout(Container host) {
 		super(host);
@@ -84,7 +84,7 @@ public class MainLayout extends GroupLayout {
 			if (rsVal == JFileChooser.APPROVE_OPTION) {
 				String fileDir = fileChooser.getCurrentDirectory().toString() + "\\" + fileChooser.getSelectedFile().getName();
 				tfImportDir.setText(fileDir);
-				cp = new Compressor(fileDir);
+				cp = new JpegCompressor(fileDir, 50);
 				btShowMatrix.addActionListener(cp);
 				btDCT.addActionListener(cp);
 			}
