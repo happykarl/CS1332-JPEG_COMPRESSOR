@@ -28,7 +28,7 @@ public class JpegCompressor implements ActionListener{
 	
 	
 	
-	public JpegCompressor(String _fileDir, int _quality){
+	public JpegCompressor(String _fileDir, String _outFileDir, int _quality){
 		fileDir = _fileDir;
 		try {
 			image = ImageIO.read(new File(fileDir));
@@ -36,7 +36,7 @@ public class JpegCompressor implements ActionListener{
 			e.printStackTrace();
 		}
 		quality = _quality;
-		outFileDir = fileDir.substring(0, fileDir.lastIndexOf(".")) + ".jpg";
+		outFileDir = _outFileDir;
 		outFile = new File(outFileDir);
 		try {
 			fileStream = new FileOutputStream(outFile);
@@ -49,10 +49,9 @@ public class JpegCompressor implements ActionListener{
 		imageHeight = JpegObj.imageHeight;
 		imageWidth = JpegObj.imageWidth;
 		
-		//System.out.println("imageHeight: " + imageHeight + " | imageWidth: " + imageWidth);
-		
 		dct = new DCT(quality);
 		Huf = new Huffman(imageWidth, imageHeight);
+		compress();
 	}
 	
 	public void compress(){
@@ -73,41 +72,61 @@ public class JpegCompressor implements ActionListener{
 	}
 	
 	
-	private void WriteCompressedData(BufferedOutputStream outStream){
-		int lastDCvalue[] = new int[JpegObj.NumberOfComponents];
-		float ybrArray[][];
-		float dctArray1[][] = new float[N][N];
-		float dctArray2[][] = new float[N][N];
-		int zigzag[] = new int[N*N];
+	public void WriteCompressedData(BufferedOutputStream outStream) {
+		int i, j, r, c, a, b;
+	    int comp, xpos, ypos, xblockoffset, yblockoffset;
+	    float inputArray[][];
+	    float dctArray1[][] = new float[8][8];
+	    double dctArray2[][] = new double[8][8];
+	    int dctArray3[] = new int[8 * 8];
 
-		for(int i=0; i<JpegObj.BlockHeight[0]; i++){
-			for(int j=0; j<JpegObj.BlockWidth[0]; j++){
-				int xpos = j * N;
-				int ypos = i * N;
-				for (int c = 0; c < JpegObj.NumberOfComponents; c++) {
-					ybrArray = (float[][]) JpegObj.Components[c];
-					// Compose 8x8 Matrix with (xpos, ypos) of each block => 'M' matrix
-					for(int y=0; y<N; y++){
-						for(int x=0; x<N; x++){
-							dctArray1[y][x] = ybrArray[ypos + y][xpos + x];
-						}
-					}
-					dctArray2 = dct.getDCT(dctArray1);
-					zigzag = dct.quantize(dctArray2, dct.Q);
-					/*
-					for(int k=0; k<dctArray3.length; k++){
-						System.out.print(dctArray3[k] + " ");
-					}
-					System.out.println("");
-					*/
-					Huf.encode(outStream, zigzag, lastDCvalue[c]);
-					lastDCvalue[c] = zigzag[0];
-				}
-			}
-		}
-		Huf.flushBuffer(outStream);
+	    /*
+	     * This method controls the compression of the image. Starting at the upper
+	     * left of the image, it compresses 8x8 blocks of data until the entire
+	     * image has been compressed.
+	     */
+
+	    int lastDCvalue[] = new int[JpegObj.NumberOfComponents];
+	    int MinBlockWidth, MinBlockHeight;
+	    // This initial setting of MinBlockWidth and MinBlockHeight is done to
+	    // ensure they start with values larger than will actually be the case.
+	    MinBlockWidth = ((imageWidth % 8 != 0) ? (int) (Math.floor(imageWidth / 8.0) + 1) * 8 : imageWidth);
+	    MinBlockHeight = ((imageHeight % 8 != 0) ? (int) (Math.floor(imageHeight / 8.0) + 1) * 8 : imageHeight);
+	    for (comp = 0; comp < JpegObj.NumberOfComponents; comp++) {
+	    	MinBlockWidth = Math.min(MinBlockWidth, JpegObj.BlockWidth[comp]);
+	    	MinBlockHeight = Math.min(MinBlockHeight, JpegObj.BlockHeight[comp]);
+    	}
+	    xpos = 0;
+	    for (r = 0; r < MinBlockHeight; r++) {
+	    	for (c = 0; c < MinBlockWidth; c++) {
+	    		xpos = c * 8;
+	    		ypos = r * 8;
+	    		for (comp = 0; comp < JpegObj.NumberOfComponents; comp++) {
+	    			// Width = JpegObj.BlockWidth[comp];
+	    			// Height = JpegObj.BlockHeight[comp];
+	    			inputArray = (float[][]) JpegObj.Components[comp];
+
+	    			for (i = 0; i < JpegObj.VsampFactor[comp]; i++) {
+	    				for (j = 0; j < JpegObj.HsampFactor[comp]; j++) {
+	    					xblockoffset = j * 8;
+	    					yblockoffset = i * 8;
+	    					for (a = 0; a < 8; a++) {
+	    						for (b = 0; b < 8; b++) {
+	    							dctArray1[a][b] = inputArray[ypos + yblockoffset + a][xpos + xblockoffset + b];
+    							}
+    						}
+	    					dctArray2 = dct.forwardDCT(dctArray1);
+	    					dctArray3 = dct.quantizeBlock(dctArray2, JpegObj.QtableNumber[comp]);
+	    					Huf.HuffmanBlockEncoder(outStream, dctArray3, lastDCvalue[comp], JpegObj.DCtableNumber[comp], JpegObj.ACtableNumber[comp]);
+	    					lastDCvalue[comp] = dctArray3[0];
+    					}
+    				}
+	    		}
+	    	}
+	    }
+	    Huf.flushBuffer(outStream);
 	}
-	
+
 	public void WriteEOI(BufferedOutputStream out){
 		byte[] EOI = { (byte) 0xFF, (byte) 0xD9 };
 		WriteMarker(EOI, out);
@@ -163,16 +182,17 @@ public class JpegCompressor implements ActionListener{
 		WriteArray(JFIF, out);
 
 		// Comment Header
-		String comment = "Test Comment";
+		String comment = "";
+		comment = JpegObj.getComment();
 		length = comment.length();
 		byte COM[] = new byte[length + 4];
 		COM[0] = (byte) 0xFF;
 		COM[1] = (byte) 0xFE;
 		COM[2] = (byte) ((length >> 8) & 0xFF);
 		COM[3] = (byte) (length & 0xFF);
-		java.lang.System.arraycopy(comment.getBytes(), 0, COM, 4, comment.length());
+		java.lang.System.arraycopy(JpegObj.Comment.getBytes(), 0, COM, 4, JpegObj.Comment.length());
 		WriteArray(COM, out);
-
+		
 		// The DQT header
 		// 0 is the luminance index and 1 is the chrominance index
 		byte DQT[] = new byte[134];
@@ -183,7 +203,7 @@ public class JpegCompressor implements ActionListener{
 		offset = 4;
 		for (i = 0; i < 2; i++) {
 			DQT[offset++] = (byte) ((0 << 4) + i);
-			tempArray = (int[]) dct.getQ();
+			tempArray = (int[]) dct.quantum[i];
 			for (j = 0; j < 64; j++) {
 				DQT[offset++] = (byte) tempArray[Huffman.jpegNaturalOrder[j]];
 			}
