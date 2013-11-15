@@ -115,7 +115,7 @@ public class JpegCompressor implements ActionListener{
 	    							dctArray1[a][b] = inputArray[ypos + yblockoffset + a][xpos + xblockoffset + b];
     							}
     						}
-	    					dctArray2 = dct.forwardDCT(dctArray1);
+	    					dctArray2 = dct.forwardDCT2(dctArray1);
 	    					dctArray3 = dct.quantizeBlock(dctArray2, JpegObj.QtableNumber[comp]);
 	    					Huf.HuffmanBlockEncoder(outStream, dctArray3, lastDCvalue[comp], JpegObj.DCtableNumber[comp], JpegObj.ACtableNumber[comp]);
 	    					lastDCvalue[comp] = dctArray3[0];
@@ -154,7 +154,7 @@ public class JpegCompressor implements ActionListener{
 		int i, j, index, offset, length;
 		int tempArray[];
 
-		// the SOI marker
+		// the SOI marker (Start of Image) First byte is 255 and second byte is 216
 		byte[] SOI = { (byte) 0xFF, (byte) 0xD8 };
 		WriteMarker(SOI, out);
 
@@ -181,6 +181,7 @@ public class JpegCompressor implements ActionListener{
 		JFIF[17] = (byte) 0x00;
 		WriteArray(JFIF, out);
 
+		/*
 		// Comment Header
 		String comment = "";
 		comment = JpegObj.getComment();
@@ -192,8 +193,9 @@ public class JpegCompressor implements ActionListener{
 		COM[3] = (byte) (length & 0xFF);
 		java.lang.System.arraycopy(JpegObj.Comment.getBytes(), 0, COM, 4, JpegObj.Comment.length());
 		WriteArray(COM, out);
+		*/
 		
-		// The DQT header
+		// The DQT header (Define Quantization Table) - 255 / 219
 		// 0 is the luminance index and 1 is the chrominance index
 		byte DQT[] = new byte[134];
 		DQT[0] = (byte) 0xFF;
@@ -205,12 +207,13 @@ public class JpegCompressor implements ActionListener{
 			DQT[offset++] = (byte) ((0 << 4) + i);
 			tempArray = (int[]) dct.quantum[i];
 			for (j = 0; j < 64; j++) {
-				DQT[offset++] = (byte) tempArray[Huffman.jpegNaturalOrder[j]];
+				//DQT[offset++] = (byte) tempArray[Huffman.jpegNaturalOrder[j]];	// more smoothing
+				DQT[offset++] = (byte) tempArray[j];
 			}
 		}
 		WriteArray(DQT, out);
 
-		// Start of Frame Header
+		// SOF (Start of Frame Header)
 		byte SOF[] = new byte[19];
 		SOF[0] = (byte) 0xFF;
 		SOF[1] = (byte) 0xC0;
@@ -230,7 +233,7 @@ public class JpegCompressor implements ActionListener{
 		}
 		WriteArray(SOF, out);
 
-		// The DHT Header
+		// The DHT Header (Define Huffman Table)	// 255, 196
 		byte DHT1[], DHT2[], DHT3[], DHT4[];
 		int bytes, temp, oldindex, intermediateindex;
 		length = 2;
@@ -240,7 +243,7 @@ public class JpegCompressor implements ActionListener{
 		DHT4 = new byte[4];
 		DHT4[0] = (byte) 0xFF;
 		DHT4[1] = (byte) 0xC4;
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 2; i++) {	// 0: DC Luminance 1: AC Luminance
 			bytes = 0;
 			DHT1[index++ - oldindex] = (byte) ((int[]) Huf.bits.elementAt(i))[0];
 			for (j = 1; j < 17; j++) {
@@ -264,20 +267,21 @@ public class JpegCompressor implements ActionListener{
 		DHT4[3] = (byte) ((index - 2) & 0xFF);
 		WriteArray(DHT4, out);
 
-		// Start of Scan Header
+		// Start of Scan Header (SOS) 255 -> 218 length.
 		byte SOS[] = new byte[14];
 		SOS[0] = (byte) 0xFF;
 		SOS[1] = (byte) 0xDA;
 		SOS[2] = (byte) 0x00;
-		SOS[3] = (byte) 12;
-		SOS[4] = (byte) JpegObj.NumberOfComponents;
+		SOS[3] = (byte) 12;	//6 + 2 * the number of components (3)
+		SOS[4] = (byte) JpegObj.NumberOfComponents;	//Then comes a byte stating the number of components (1-4)
 	    index = 5;
 	    for (i = 0; i < SOS[4]; i++) {
-	    	SOS[index++] = (byte) JpegObj.CompID[i];
-	    	SOS[index++] = (byte) ((JpegObj.DCtableNumber[i] << 4) + JpegObj.ACtableNumber[i]);
+	    	SOS[index++] = (byte) JpegObj.CompID[i];	//the first is the component identifier (defined in the frame segment)
+	    	SOS[index++] = (byte) ((JpegObj.DCtableNumber[i] << 4) + JpegObj.ACtableNumber[i]);	//and the second is divided up in two parts, the first stating the destination selector of the DC Huffman table and the second the destination selector of the AC Huffman table
 		}
+	    //The segment closes with three bytes which in our case (sequential DCT) are 0, 63 and 0 (the last divided in two half bytes)
 		SOS[index++] = (byte) JpegObj.Ss;
-		SOS[index++] = (byte) JpegObj.Se;
+		SOS[index++] = (byte) JpegObj.Se;	//63
 		SOS[index++] = (byte) ((JpegObj.Ah << 4) + JpegObj.Al);
 		WriteArray(SOS, out);
 	}

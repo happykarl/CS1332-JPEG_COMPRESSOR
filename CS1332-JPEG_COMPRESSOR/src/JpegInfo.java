@@ -16,9 +16,9 @@ public class JpegInfo {
 	public int[] CompID = { 1, 2, 3 };
 	public int[] HsampFactor = { 1, 1, 1 };
 	public int[] VsampFactor = { 1, 1, 1 };
-	public int[] QtableNumber = { 0, 1, 1 };
-	public int[] DCtableNumber = { 0, 1, 1 };
-	public int[] ACtableNumber = { 0, 1, 1 };
+	public int[] QtableNumber = { 0, 0, 0 };
+	public int[] DCtableNumber = { 0, 0, 0 };
+	public int[] ACtableNumber = { 0, 0, 0 };
 	public boolean[] lastColumnIsDummy = { false, false, false };
 	public boolean[] lastRowIsDummy = { false, false, false };
 	public int Ss = 0;

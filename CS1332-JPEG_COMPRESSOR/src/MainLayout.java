@@ -102,7 +102,7 @@ public class MainLayout extends GroupLayout {
 					outFileDir = fileDir.substring(0, fileDir.lastIndexOf(".")) + (i++) + ".jpg";
 					outFile = new File(outFileDir);
 				}
-						
+				
 				tfExportDir.setText(outFileDir);
 				btDCT.addActionListener(new StartConvert(fileDir, outFileDir));
 			}

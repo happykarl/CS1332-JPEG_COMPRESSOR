@@ -95,6 +95,17 @@ public class DCT {
 		Divisors[1] = DivisorsChrominance;
 	}
 	
+	public double[][] forwardDCT2(float input[][]) {
+		float[][] M = getM(input);
+		float[][] T = getT();
+		float[][] TM = getTM(T, M);
+		double[][] D = getD(TM, T);
+		
+		
+		return D;
+		
+	}
+	
 	public double[][] forwardDCT(float input[][]) {
 		double output[][] = new double[N][N];
 		double tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
@@ -206,4 +217,66 @@ public class DCT {
 		}
 		return outputData;
 	}
+	
+	
+	
+	
+	
+	public float[][] getM(float input[][]){
+		// level off (subtract 128 from original values)
+		float output[][] = new float[JpegCompressor.N][JpegCompressor.N];
+		for(int h=0; h<JpegCompressor.N; h++){
+			for(int w=0; w<JpegCompressor.N; w++){
+				output[h][w] = input[h][w] - 128f;
+			}
+		}
+		return output;
+	}
+	
+	public float[][] getT(){
+		float output[][] = new float[JpegCompressor.N][JpegCompressor.N];
+		for(int h=0; h<JpegCompressor.N; h++){
+			for(int w=0; w<JpegCompressor.N; w++){
+				if(h==0){
+					output[h][w] = (float) (1 / Math.sqrt((float) JpegCompressor.N));
+				}else{
+					output[h][w] = (float) (  Math.sqrt( 2 / (float) JpegCompressor.N )
+							* (float) Math.cos( (2*(w%JpegCompressor.N)+1)*(h%JpegCompressor.N)*Math.PI/(2*JpegCompressor.N) ) );
+				}
+				//System.out.print(output[h][w]);
+			}
+			//System.out.println("");
+		}
+		return output;
+	}
+	
+	public float[][] getTM(float[][] T, float[][] M){
+		float output[][] = new float[JpegCompressor.N][JpegCompressor.N];
+		for(int h=0; h<JpegCompressor.N; h++){
+			for(int w=0; w<JpegCompressor.N; w++){
+				for(int x=0; x<JpegCompressor.N; x++){
+					output[h][w] += T[h][x] * M[x][w];
+				}
+				//System.out.print(output[h][w]);
+			}
+			//System.out.println("");
+		}
+		return output;
+	}
+	
+	public double[][] getD(float[][] TM, float[][] T){
+		double output[][] = new double[JpegCompressor.N][JpegCompressor.N];
+		for(int h=0; h<JpegCompressor.N; h++){
+			for(int w=0; w<JpegCompressor.N; w++){
+				for(int x=0; x<JpegCompressor.N; x++){
+					output[h][w] += TM[h][x] * T[x][w];
+				}
+				//System.out.print(output[h][w]);
+			}
+			//System.out.println("");
+		}
+		return output;
+	}
+	
+	
 }

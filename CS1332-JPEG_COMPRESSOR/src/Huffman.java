@@ -59,13 +59,13 @@ public class Huffman{
 		bits = new Vector();
 		bits.addElement(bitsDCluminance);
 		bits.addElement(bitsACluminance);
-		bits.addElement(bitsDCchrominance);
-		bits.addElement(bitsACchrominance);
+		//bits.addElement(bitsDCchrominance);
+		//bits.addElement(bitsACchrominance);
 		val = new Vector();
 		val.addElement(valDCluminance);
 		val.addElement(valACluminance);
-		val.addElement(valDCchrominance);
-		val.addElement(valACchrominance);
+		//val.addElement(valDCchrominance);
+		//val.addElement(valACchrominance);
 		initHuf();
 		ImageWidth = Width;
 		ImageHeight = Height;
