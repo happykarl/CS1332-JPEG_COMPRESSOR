@@ -1,23 +1,35 @@
+import java.awt.Checkbox;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 
 
-public class MainLayout extends GroupLayout {
-	JLabel lbImportDir, lbExportDir, lbQuality;
-	JTextField tfImportDir, tfExportDir, tfQuality;
-	JButton btImportDir, btShowMatrix, btDCT;
-	JpegCompressor cp;
+public class Layout extends GroupLayout {
+	private int QT_MAX = 100;
+	private int QT_MIN = 1;
+	private int QT_INIT = 50;
 	
-	public MainLayout(Container host) {
+	private JLabel lbImportDir, lbExportDir, lbQuality;
+	private JTextField tfImportDir, tfExportDir;
+	private JButton btImportDir, btConvert;
+	private Checkbox cbColor, cbGray;
+	private JSlider sdQuality;
+	
+	Compressor compressor;
+	
+	public Layout(Container host) {
 		super(host);
+		compressor = new Compressor();
 		
 		this.setAutoCreateGaps(true);
 		this.setAutoCreateContainerGaps(true);
@@ -28,11 +40,13 @@ public class MainLayout extends GroupLayout {
 		lbQuality = new JLabel("JPEG Quality: ");
 		tfImportDir = new JTextField("Import Directory...", 50);
 		tfExportDir = new JTextField("Export Directory...", 50);
-		tfQuality = new JTextField("50", 50);
+		sdQuality = new JSlider(JSlider.HORIZONTAL, QT_MIN, QT_MAX, QT_INIT);
 		
 	    btImportDir = new JButton("File Select");
-	    btShowMatrix = new JButton("Show Matrix");
-	    btDCT = new JButton("Start Converting");
+	    btConvert = new JButton("Start Converting");
+	    
+	    cbColor = new Checkbox("Color");
+	    cbGray = new Checkbox("Gray");
 
 	    // Vertex Group
 	    GroupLayout.SequentialGroup leftToRight = this.createSequentialGroup();
@@ -41,19 +55,21 @@ public class MainLayout extends GroupLayout {
 		columnLeft.addComponent(lbImportDir);
 		columnLeft.addComponent(lbExportDir);
 		columnLeft.addComponent(lbQuality);
-		columnLeft.addComponent(btDCT);
 		leftToRight.addGroup(columnLeft);
 	    
 		GroupLayout.ParallelGroup columnCenter = this.createParallelGroup();
 		columnCenter.addComponent(tfImportDir);
 		columnCenter.addComponent(tfExportDir);
-		columnCenter.addComponent(tfQuality);
-		columnCenter.addComponent(btShowMatrix);
+		columnCenter.addComponent(sdQuality);
+		columnCenter.addComponent(btConvert);
 		
 		leftToRight.addGroup(columnCenter);
 		
 		GroupLayout.ParallelGroup columnRight = this.createParallelGroup();
 		columnRight.addComponent(btImportDir);
+		columnRight.addComponent(cbColor);
+		columnRight.addComponent(cbGray);
+		
 		leftToRight.addGroup(columnRight);
 		
 		// Horizontal Group
@@ -67,22 +83,40 @@ public class MainLayout extends GroupLayout {
 		GroupLayout.ParallelGroup rowMiddle = this.createParallelGroup();
 		rowMiddle.addComponent(lbExportDir);
 		rowMiddle.addComponent(tfExportDir);
+		rowMiddle.addComponent(cbColor);
 		topToBottom.addGroup(rowMiddle);
 		
 		GroupLayout.ParallelGroup rowBottom = this.createParallelGroup();
 		rowBottom.addComponent(lbQuality);
-		rowBottom.addComponent(tfQuality);
+		rowBottom.addComponent(sdQuality);
+		rowBottom.addComponent(cbGray);
 		topToBottom.addGroup(rowBottom);
 		
 		GroupLayout.ParallelGroup rowBottom2 = this.createParallelGroup();
-		rowBottom2.addComponent(btShowMatrix);
-		rowBottom2.addComponent(btDCT);
+		rowBottom2.addComponent(btConvert);
 		topToBottom.addGroup(rowBottom2);
 		
 		this.setHorizontalGroup(leftToRight);
 		this.setVerticalGroup(topToBottom);
 		
 		btImportDir.addActionListener(new FileOpen());
+		cbColor.addItemListener(new CheckColor());
+		cbColor.setState(true);
+		cbGray.addItemListener(new CheckGray());
+	}
+	
+	private class CheckColor implements ItemListener{
+		public void itemStateChanged(ItemEvent arg0) {
+			cbColor.setState(true);
+			cbGray.setState(false);
+		}
+	}
+	
+	private class CheckGray implements ItemListener{
+		public void itemStateChanged(ItemEvent arg0) {
+			cbColor.setState(false);
+			cbGray.setState(true);
+		}
 	}
 	
 	private class FileOpen implements ActionListener{
@@ -104,7 +138,7 @@ public class MainLayout extends GroupLayout {
 				}
 				
 				tfExportDir.setText(outFileDir);
-				btDCT.addActionListener(new StartConvert(fileDir, outFileDir));
+				btConvert.addActionListener(new StartConvert(fileDir, outFileDir));
 			}
 		}
 	}
@@ -117,8 +151,11 @@ public class MainLayout extends GroupLayout {
 		}
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			cp = new JpegCompressor( fileDir, outFileDir, Integer.parseInt(tfQuality.getText()) );
-			btShowMatrix.addActionListener(cp);
+			compressor.setFileDir(fileDir);
+			compressor.setOutFileDir(outFileDir);
+			compressor.setQuality((int) sdQuality.getValue());
+			compressor.setMode(cbColor.getState());
+			compressor.execute();
 		}
 		
 	}
