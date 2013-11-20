@@ -110,7 +110,7 @@ public class Compressor {
 									dctArray1[a][b] = inputArray[ypos + yblockoffset + a][xpos + xblockoffset + b];
 								}
 							}
-							dctArray2 = dct.forwardDCT(dctArray1);
+							dctArray2 = dct.forwardDCT2(dctArray1);
 							//dctArray2 = dct.forwardDCT2(dctArray1);
 							dctArray3 = dct.quantize(dctArray2);
 							hufman.encode(dctArray3, lastDCvalue[comp]);

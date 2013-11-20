@@ -162,8 +162,8 @@ public class DCT {
 		int index = 0;
 		for(int h=0; h<Compressor.N; h++){
 			for(int w=0; w<Compressor.N; w++){
-				outputData[index] = (int) Math.round(inputData[h][w] * divisorLuminance[index]);
-				//outputData[index] = (int) Math.round(inputData[h][w] / quantumLuminance[index]);
+				//outputData[index] = (int) Math.round(inputData[h][w] * divisorLuminance[index]);
+				outputData[index] = (int) Math.round(inputData[h][w] / quantumLuminance[index]);
 				index++;
 			}
 		}
