@@ -91,8 +91,8 @@ public class DCT {
 
 		quantum[0] = quantum_luminance;
 		Divisors[0] = DivisorsLuminance;
-		quantum[1] = quantum_chrominance;
-		Divisors[1] = DivisorsChrominance;
+		//quantum[1] = quantum_chrominance;
+		//Divisors[1] = DivisorsChrominance;
 	}
 	
 	public double[][] forwardDCT2(float input[][]) {
@@ -241,7 +241,7 @@ public class DCT {
 					output[h][w] = (float) (1 / Math.sqrt((float) JpegCompressor.N));
 				}else{
 					output[h][w] = (float) (  Math.sqrt( 2 / (float) JpegCompressor.N )
-							* (float) Math.cos( (2*(w%JpegCompressor.N)+1)*(h%JpegCompressor.N)*Math.PI/(2*JpegCompressor.N) ) );
+							* (float) Math.cos( (2*w+1)*h*Math.PI/(2*JpegCompressor.N) ) );
 				}
 				//System.out.print(output[h][w]);
 			}

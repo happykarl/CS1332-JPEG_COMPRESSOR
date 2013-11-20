@@ -11,7 +11,7 @@ public class JpegInfo {
 	public int BlockHeight[];
 	// the following are set as the default
 	public int Precision = 8;
-	public int NumberOfComponents = 3;
+	public int NumberOfComponents = 1;
 	public Object Components[];
 	public int[] CompID = { 1, 2, 3 };
 	public int[] HsampFactor = { 1, 1, 1 };
@@ -104,7 +104,7 @@ public class JpegInfo {
 		}
 		
 		Components[0] = Y;
-		Components[1] = Cb1;
-		Components[2] = Cr1;
+		//Components[1] = Cb1;
+		//Components[2] = Cr1;
 	}
 }

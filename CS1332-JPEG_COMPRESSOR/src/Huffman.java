@@ -17,8 +17,8 @@ public class Huffman{
 	public int NumOfACTables;
 	public int[] bitsDCluminance = { 0x00, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 	public int[] valDCluminance = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	public int[] bitsDCchrominance = { 0x01, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 };
-	public int[] valDCchrominance = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+	//public int[] bitsDCchrominance = { 0x01, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 };
+	//public int[] valDCchrominance = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	public int[] bitsACluminance = { 0x10, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d };
 	public int[] valACluminance = { 0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41,
 			0x06, 0x13, 0x51, 0x61, 0x07, 0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42,
@@ -32,7 +32,7 @@ public class Huffman{
 			0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2, 0xe3, 0xe4,
 			0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9,
 			0xfa };
-
+	/*
 	public int[] bitsACchrominance = { 0x11, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 };
 	public int[] valACchrominance = { 0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31, 0x06,
 			0x12, 0x41, 0x51, 0x07, 0x61, 0x71, 0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91, 0xa1,
@@ -46,6 +46,7 @@ public class Huffman{
 			0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe2,
 			0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
 			0xf9, 0xfa };
+	*/
 	public Vector bits;
 	public Vector val;
 
@@ -207,7 +208,7 @@ public class Huffman{
      * init of the DC values for the chrominance [][0] is the code [][1] is the
      * number of bit
      */
-
+		/*
 		p = 0;
 		for (l = 1; l <= 16; l++) {
 			for (i = 1; i <= bitsDCchrominance[l]; i++) {
@@ -232,12 +233,13 @@ public class Huffman{
 			DC_matrix1[valDCchrominance[p]][0] = huffcode[p];
 			DC_matrix1[valDCchrominance[p]][1] = huffsize[p];
 		}
+		*/
 	
     /*
      * Init of the AC hufmann code for the chrominance matrix [][][0] is the
      * code & matrix[][][1] is the number of bit needed
      */
-	
+		/*
 		p = 0;
 		for (l = 1; l <= 16; l++) {
 			for (i = 1; i <= bitsACchrominance[l]; i++) {
@@ -263,6 +265,7 @@ public class Huffman{
 			AC_matrix1[valACchrominance[p]][0] = huffcode[p];
 			AC_matrix1[valACchrominance[p]][1] = huffsize[p];
 		}
+		*/
 
     /*
      * init of the DC values for the luminance [][0] is the code [][1] is the

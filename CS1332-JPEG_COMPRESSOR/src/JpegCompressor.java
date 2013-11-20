@@ -115,7 +115,7 @@ public class JpegCompressor implements ActionListener{
 	    							dctArray1[a][b] = inputArray[ypos + yblockoffset + a][xpos + xblockoffset + b];
     							}
     						}
-	    					dctArray2 = dct.forwardDCT2(dctArray1);
+	    					dctArray2 = dct.forwardDCT(dctArray1);
 	    					dctArray3 = dct.quantizeBlock(dctArray2, JpegObj.QtableNumber[comp]);
 	    					Huf.HuffmanBlockEncoder(outStream, dctArray3, lastDCvalue[comp], JpegObj.DCtableNumber[comp], JpegObj.ACtableNumber[comp]);
 	    					lastDCvalue[comp] = dctArray3[0];
@@ -144,6 +144,7 @@ public class JpegCompressor implements ActionListener{
 		int length;
 		try{
 			length = ((data[2] & 0xFF) << 8) + (data[3] & 0xFF) + 2;
+			System.out.println(length);
 			out.write(data, 0, length);
 		}catch(IOException e){
 			System.out.println("IO Error: " + e.getMessage());
@@ -160,27 +161,28 @@ public class JpegCompressor implements ActionListener{
 
 		// The order of the following headers is quiet inconsequential.
 		// the JFIF header
+		
 		byte JFIF[] = new byte[18];
-		JFIF[0] = (byte) 0xff;
-		JFIF[1] = (byte) 0xe0;
-		JFIF[2] = (byte) 0x00;
-		JFIF[3] = (byte) 0x10;
-		JFIF[4] = (byte) 0x4a;
-		JFIF[5] = (byte) 0x46;
+		JFIF[0] = (byte) 0xff;	// APP0 marker 2 bytes
+		JFIF[1] = (byte) 0xe0;	// Always equals 0xFFE0
+		JFIF[2] = (byte) 0x00;	// Length
+		JFIF[3] = (byte) 0x10;	// Length of segment excluding APP0 marker
+		JFIF[4] = (byte) 0x4a;	// Identifier (size 5)
+		JFIF[5] = (byte) 0x46;	// Always equals "JFIF" (with zero following) (0x4A46494600)
 		JFIF[6] = (byte) 0x49;
 		JFIF[7] = (byte) 0x46;
-		JFIF[8] = (byte) 0x00;
-		JFIF[9] = (byte) 0x01;
-		JFIF[10] = (byte) 0x00;
-		JFIF[11] = (byte) 0x00;
-		JFIF[12] = (byte) 0x00;
+		JFIF[8] = (byte) 0x00;	// End of Identifier
+		JFIF[9] = (byte) 0x01;	// Version (2bytes)
+		JFIF[10] = (byte) 0x02;	// : First byte is major version (currently 0x01), Second byte is minor version (currently 0x02)
+		JFIF[11] = (byte) 0x00; // Density units: Units for pixel density fields / 0 - No units, aspect ratio only specified  / 1 - Pixels per inch / 2 - Pixels per centimetre
+		JFIF[12] = (byte) 0x00;	//  (2 bytes) Horizontal pixel density
 		JFIF[13] = (byte) 0x01;
-		JFIF[14] = (byte) 0x00;
-		JFIF[15] = (byte) 0x01;
-		JFIF[16] = (byte) 0x00;
-		JFIF[17] = (byte) 0x00;
+		JFIF[14] = (byte) 0x00;	//  (2 bytes) Vertical pixel density
+		JFIF[15] = (byte) 0x01;	
+		JFIF[16] = (byte) 0x00;	// (1 byte) Thumbnail horizontal pixel count
+		JFIF[17] = (byte) 0x00; // (1 byte) Thumbnail vertical pixel count
 		WriteArray(JFIF, out);
-
+		
 		/*
 		// Comment Header
 		String comment = "";
@@ -197,13 +199,13 @@ public class JpegCompressor implements ActionListener{
 		
 		// The DQT header (Define Quantization Table) - 255 / 219
 		// 0 is the luminance index and 1 is the chrominance index
-		byte DQT[] = new byte[134];
+		byte DQT[] = new byte[69];
 		DQT[0] = (byte) 0xFF;
 		DQT[1] = (byte) 0xDB;
 		DQT[2] = (byte) 0x00;
-		DQT[3] = (byte) 0x84;
+		DQT[3] = (byte) 0x43;
 		offset = 4;
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < 1; i++) {
 			DQT[offset++] = (byte) ((0 << 4) + i);
 			tempArray = (int[]) dct.quantum[i];
 			for (j = 0; j < 64; j++) {
@@ -215,10 +217,10 @@ public class JpegCompressor implements ActionListener{
 
 		// SOF (Start of Frame Header)
 		byte SOF[] = new byte[19];
-		SOF[0] = (byte) 0xFF;
-		SOF[1] = (byte) 0xC0;
+		SOF[0] = (byte) 0xFF;	//255
+		SOF[1] = (byte) 0xC0;	// 192 ( meaning the baseline sequential DCT mode)
 		SOF[2] = (byte) 0x00;
-		SOF[3] = (byte) 17;
+		SOF[3] = (byte) (byte) (8 + 3 * JpegObj.NumberOfComponents); // (8 + 3 * the number of components)	// 17;
 		SOF[4] = (byte) JpegObj.Precision;
 		SOF[5] = (byte) ((JpegObj.imageHeight >> 8) & 0xFF);
 		SOF[6] = (byte) ((JpegObj.imageHeight) & 0xFF);
@@ -267,12 +269,12 @@ public class JpegCompressor implements ActionListener{
 		DHT4[3] = (byte) ((index - 2) & 0xFF);
 		WriteArray(DHT4, out);
 
-		// Start of Scan Header (SOS) 255 -> 218 length.
+		// Start of Scan Header (SOS) 255 -> 218 .
 		byte SOS[] = new byte[14];
-		SOS[0] = (byte) 0xFF;
-		SOS[1] = (byte) 0xDA;
-		SOS[2] = (byte) 0x00;
-		SOS[3] = (byte) 12;	//6 + 2 * the number of components (3)
+		SOS[0] = (byte) 0xFF;	// 255
+		SOS[1] = (byte) 0xDA;	// 218
+		SOS[2] = (byte) 0x00;	// 2 byte length info which is (0, 6 + 2 * the number of components)
+		SOS[3] = (byte) (6 + 2 * JpegObj.NumberOfComponents); //12;	//6 + 2 * the number of components (3)
 		SOS[4] = (byte) JpegObj.NumberOfComponents;	//Then comes a byte stating the number of components (1-4)
 	    index = 5;
 	    for (i = 0; i < SOS[4]; i++) {
@@ -280,9 +282,9 @@ public class JpegCompressor implements ActionListener{
 	    	SOS[index++] = (byte) ((JpegObj.DCtableNumber[i] << 4) + JpegObj.ACtableNumber[i]);	//and the second is divided up in two parts, the first stating the destination selector of the DC Huffman table and the second the destination selector of the AC Huffman table
 		}
 	    //The segment closes with three bytes which in our case (sequential DCT) are 0, 63 and 0 (the last divided in two half bytes)
-		SOS[index++] = (byte) JpegObj.Ss;
+		SOS[index++] = (byte) JpegObj.Ss;	// 0
 		SOS[index++] = (byte) JpegObj.Se;	//63
-		SOS[index++] = (byte) ((JpegObj.Ah << 4) + JpegObj.Al);
+		SOS[index++] = (byte) ((JpegObj.Ah << 4) + JpegObj.Al);	// 0
 		WriteArray(SOS, out);
 	}
 	
