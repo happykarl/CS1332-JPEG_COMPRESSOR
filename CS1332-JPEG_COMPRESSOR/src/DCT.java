@@ -26,6 +26,7 @@ public class DCT {
 		, 99, 99, 99, 99, 99, 99, 99, 99
 	};
 	
+	
 	private float[] AANscaleFactor = {
 		1.0f, 1.387039845f, 1.306562965f, 1.175875602f, 1.0f, 0.785694958f, 0.541196100f, 0.275899379f
 	};
@@ -52,6 +53,7 @@ public class DCT {
 				temp = 255;
 			quantumLuminance[i] = temp;
 		}
+		
 		int index = 0;
 		for (int i=0; i<8; i++) {
 			for (int j=0; j<8; j++) {
@@ -59,102 +61,6 @@ public class DCT {
 				index++;
 			}
 		}
-		
-	}
-	
-	public float[][] forwardDCT(float[][] input) {
-		float output[][] = new float[Compressor.N][Compressor.N];
-		float tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
-		float tmp10, tmp11, tmp12, tmp13;
-		float z1, z2, z3, z4, z5, z11, z13;
-		int i;
-		int j;
-		
-		// Level Off - Subtracts 128 from the input values
-		for (i = 0; i < 8; i++) {
-			for (j = 0; j < 8; j++) {
-				output[i][j] = (input[i][j] - 128.0f);
-			}
-		}
-		for (i = 0; i < 8; i++) {
-			tmp0 = output[i][0] + output[i][7];
-			tmp7 = output[i][0] - output[i][7];
-			tmp1 = output[i][1] + output[i][6];
-			tmp6 = output[i][1] - output[i][6];
-			tmp2 = output[i][2] + output[i][5];
-			tmp5 = output[i][2] - output[i][5];
-			tmp3 = output[i][3] + output[i][4];
-			tmp4 = output[i][3] - output[i][4];
-			
-			tmp10 = tmp0 + tmp3;
-			tmp13 = tmp0 - tmp3;
-			tmp11 = tmp1 + tmp2;
-			tmp12 = tmp1 - tmp2;
-			
-			output[i][0] = tmp10 + tmp11;
-			output[i][4] = tmp10 - tmp11;
-			
-			z1 = (tmp12 + tmp13) * 0.707106781f;
-			output[i][2] = tmp13 + z1;
-			output[i][6] = tmp13 - z1;
-			
-			tmp10 = tmp4 + tmp5;
-			tmp11 = tmp5 + tmp6;
-			tmp12 = tmp6 + tmp7;
-			
-			z5 = (tmp10 - tmp12) * 0.382683433f;
-			z2 = 0.541196100f * tmp10 + z5;
-			z4 = 1.306562965f * tmp12 + z5;
-			z3 = tmp11 * 0.707106781f;
-			
-			z11 = tmp7 + z3;
-			z13 = tmp7 - z3;
-			
-			output[i][5] = z13 + z2;
-			output[i][3] = z13 - z2;
-			output[i][1] = z11 + z4;
-			output[i][7] = z11 - z4;
-		}
-		for (i = 0; i < 8; i++) {
-			tmp0 = output[0][i] + output[7][i];
-			tmp7 = output[0][i] - output[7][i];
-			tmp1 = output[1][i] + output[6][i];
-			tmp6 = output[1][i] - output[6][i];
-			tmp2 = output[2][i] + output[5][i];
-			tmp5 = output[2][i] - output[5][i];
-			tmp3 = output[3][i] + output[4][i];
-			tmp4 = output[3][i] - output[4][i];
-			
-			tmp10 = tmp0 + tmp3;
-			tmp13 = tmp0 - tmp3;
-			tmp11 = tmp1 + tmp2;
-			tmp12 = tmp1 - tmp2;
-			
-			output[0][i] = tmp10 + tmp11;
-			output[4][i] = tmp10 - tmp11;
-			
-			z1 = (tmp12 + tmp13) * 0.707106781f;
-			output[2][i] = tmp13 + z1;
-			output[6][i] = tmp13 - z1;
-			
-			tmp10 = tmp4 + tmp5;
-			tmp11 = tmp5 + tmp6;
-			tmp12 = tmp6 + tmp7;
-			
-			z5 = (tmp10 - tmp12) * 0.382683433f;
-			z2 = 0.541196100f * tmp10 + z5;
-			z4 = 1.306562965f * tmp12 + z5;
-			z3 = tmp11 * 0.707106781f;
-			
-			z11 = tmp7 + z3;
-			z13 = tmp7 - z3;
-			
-			output[5][i] = z13 + z2;
-			output[3][i] = z13 - z2;
-			output[1][i] = z11 + z4;
-			output[7][i] = z11 - z4;
-		}
-		return output;
 	}
 	
 	public int[] quantize(float[][] inputData) {
@@ -162,7 +68,6 @@ public class DCT {
 		int index = 0;
 		for(int h=0; h<Compressor.N; h++){
 			for(int w=0; w<Compressor.N; w++){
-				//outputData[index] = (int) Math.round(inputData[h][w] * divisorLuminance[index]);
 				outputData[index] = (int) Math.round(inputData[h][w] / quantumLuminance[index]);
 				index++;
 			}
@@ -173,16 +78,18 @@ public class DCT {
 	public int[] getQuantum(){
 		return quantumLuminance;
 	}
-	
+	/*
 	public float[] getDivisor(){
 		return divisorLuminance;
 	}
+	*/
 	
-	public float[][] forwardDCT2(float input[][]) {
+	public float[][] forwardDCT(float input[][]) {
 		float[][] M = getM(input);
 		float[][] T = getT();
+		float[][] TTran = getTran(T);
 		float[][] TM = getTM(T, M);
-		float[][] D = getD(TM, T);
+		float[][] D = getD(TM, TTran);
 		
 		
 		return D;
@@ -215,6 +122,15 @@ public class DCT {
 			//System.out.println("");
 		}
 		return output;
+	}
+	public float[][] getTran(float[][] m){
+		float [][] sol = new float[Compressor.N][Compressor.N];
+		for(int i =0;i<Compressor.N;i++){
+			for(int j =0;j<Compressor.N;j++){
+				sol[j][i] = m[i][j];
+			}
+		}
+		return sol;
 	}
 	
 	public float[][] getTM(float[][] T, float[][] M){

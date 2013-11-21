@@ -110,7 +110,7 @@ public class ImageWriter {
 		DQT[offset++] = (byte) ((0 << 4) + 0);
 		for (int j = 0; j < 64; j++) {
 			DQT[offset++] = (byte) tempArray[Huffman.jpegNaturalOrder[j]];	// more smoothing
-			//DQT[offset++] = (byte) tempArray[j];
+			//DQT[offset++] = (byte) tempArray[Huffman.jpegOrder[j]];
 		}
 		WriteArray(DQT, outStream);
 	}
