@@ -1,5 +1,9 @@
 import javax.swing.JFrame;
 
+/**
+ * Main method for JPEG compressor
+ *
+ */
 public class Main {
 	
 	public static void main(String[] args) {

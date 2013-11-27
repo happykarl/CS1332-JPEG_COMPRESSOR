@@ -1,9 +1,8 @@
-
 public class DCT {
+	// Default JPEG Quality
 	private int quality = 50;
-	
-	// Quantinization Matrix for luminace.
-	private int[] quantumLuminance = new int[]{
+	// Quantization Matrix.
+	private int[] quantizaionMatrix = new int[]{
 		  16, 11, 10, 16,  24,  40,  51,  61
 		, 12, 12, 14, 19,  26,  58,  60,  55
 		, 14, 13, 16, 24,  40,  57,  69,  56
@@ -14,27 +13,13 @@ public class DCT {
 		, 72, 92, 95, 98, 112, 100, 103,  99
 	};
 	
-	// Divisor Matrix for luminance.
-	private float[] divisorLuminance = new float[]{
-		  17, 18, 24, 47, 99, 99, 99, 99
-		, 18, 21, 26, 66, 99, 99, 99, 99
-		, 24, 26, 56, 99, 99, 99, 99, 99
-		, 47, 66, 99, 99, 99, 99, 99, 99
-		, 99, 99, 99, 99, 99, 99, 99, 99
-		, 99, 99, 99, 99, 99, 99, 99, 99
-		, 99, 99, 99, 99, 99, 99, 99, 99
-		, 99, 99, 99, 99, 99, 99, 99, 99
-	};
-	
-	
-	private float[] AANscaleFactor = {
-		1.0f, 1.387039845f, 1.306562965f, 1.175875602f, 1.0f, 0.785694958f, 0.541196100f, 0.275899379f
-	};
-
+	/**
+	 * Constructor for DCT class. Get a value from parameter and change the Quantization Matrix based on the quality.
+	 * @param _quality	JPEG quality
+	 */
 	public DCT(int _quality) {
 		quality = _quality;
-		
-		
+		// Calibrating the quality value.
 		if (quality <= 0)
 			quality = 1;
 		if (quality > 100)
@@ -44,60 +29,61 @@ public class DCT {
 		else
 			quality = 200 - quality * 2;
 		
-		// Luminance Calibrating
+		// Calibrating the Quantization Matrix based on quality value
 		for (int i = 0; i < 64; i++) {
-			int temp = (quantumLuminance[i] * quality + 50) / 100;
-			if (temp <= 0)
-				temp = 1;
-			if (temp > 255)
-				temp = 255;
-			quantumLuminance[i] = temp;
-		}
-		
-		int index = 0;
-		for (int i=0; i<8; i++) {
-			for (int j=0; j<8; j++) {
-				divisorLuminance[index] = (1.0f / (quantumLuminance[index] * AANscaleFactor[i] * AANscaleFactor[j] * 8.0f));
-				index++;
-			}
+			quantizaionMatrix[i] = (quantizaionMatrix[i] * quality + 50) / 100;
+			if (quantizaionMatrix[i] <= 0)
+				quantizaionMatrix[i] = 1;
+			if (quantizaionMatrix[i] > 255)
+				quantizaionMatrix[i] = 255;
 		}
 	}
 	
+	/**
+	 * Quantization process
+	 * @param inputData Discrete Cosine Transform 8x8 Matrix
+	 * @return Quantized 8x8 matrix
+	 */
 	public int[] quantize(float[][] inputData) {
 		int outputData[] = new int[Compressor.N * Compressor.N];
 		int index = 0;
 		for(int h=0; h<Compressor.N; h++){
 			for(int w=0; w<Compressor.N; w++){
-				outputData[index] = (int) Math.round(inputData[h][w] / quantumLuminance[index]);
+				outputData[index] = (int) Math.round(inputData[h][w] / quantizaionMatrix[index]);
 				index++;
 			}
 		}
 		return outputData;
 	}
 	
+	/**
+	 * get quantizaionMatrix
+	 * @return quantizaionMatrix
+	 */
 	public int[] getQuantum(){
-		return quantumLuminance;
+		return quantizaionMatrix;
 	}
-	/*
-	public float[] getDivisor(){
-		return divisorLuminance;
-	}
-	*/
 	
-	public float[][] forwardDCT(float input[][]) {
-		float[][] M = getM(input);
-		float[][] T = getT();
-		float[][] TTran = getTran(T);
-		float[][] TM = getTM(T, M);
-		float[][] D = getD(TM, TTran);
-		
-		
+	/**
+	 * Discrete Cosine Transform process
+	 * @param input 8x8 original channel matrix
+	 * @return DCT processed 8x8 matrix
+	 */
+	public float[][] getDCT(float input[][]) {
+		float[][] M = getM(input);		// get level off matrix M
+		float[][] T = getT();			// get T matrix
+		float[][] TTrans = getTrans(T);	// get T transpose matrix
+		float[][] TM = getTM(T, M);		// matrix multiplication with T and M
+		float[][] D = getD(TM, TTrans);	// matrix multiplication with T and M and T transpose
 		return D;
-		
 	}
 	
+	/**
+	 * get level off matrix M (subtract 128 from original values)
+	 * @param input original matrix
+	 * @return M matrix which is leveled off from original matrix
+	 */
 	public float[][] getM(float input[][]){
-		// level off (subtract 128 from original values)
 		float output[][] = new float[Compressor.N][Compressor.N];
 		for(int h=0; h<Compressor.N; h++){
 			for(int w=0; w<Compressor.N; w++){
@@ -107,6 +93,10 @@ public class DCT {
 		return output;
 	}
 	
+	/**
+	 * get T matrix
+	 * @return T matrix
+	 */
 	public float[][] getT(){
 		float output[][] = new float[Compressor.N][Compressor.N];
 		for(int h=0; h<Compressor.N; h++){
@@ -117,22 +107,32 @@ public class DCT {
 					output[h][w] = (float) (  Math.sqrt( 2 / (float) Compressor.N )
 							* (float) Math.cos( (2*w+1)*h*Math.PI/(2*Compressor.N) ) );
 				}
-				//System.out.print(output[h][w]);
 			}
-			//System.out.println("");
 		}
 		return output;
 	}
-	public float[][] getTran(float[][] m){
-		float [][] sol = new float[Compressor.N][Compressor.N];
+	
+	/**
+	 * 
+	 * @param get T transpose matrix
+	 * @return	T transpose matrix
+	 */
+	public float[][] getTrans(float[][] T){
+		float [][] result = new float[Compressor.N][Compressor.N];
 		for(int i =0;i<Compressor.N;i++){
 			for(int j =0;j<Compressor.N;j++){
-				sol[j][i] = m[i][j];
+				result[j][i] = T[i][j];
 			}
 		}
-		return sol;
+		return result;
 	}
 	
+	/**
+	 * get matrix multiplication with T and M
+	 * @param T T matrix
+	 * @param M M matrix
+	 * @return TxM matrix
+	 */
 	public float[][] getTM(float[][] T, float[][] M){
 		float output[][] = new float[Compressor.N][Compressor.N];
 		for(int h=0; h<Compressor.N; h++){
@@ -140,13 +140,17 @@ public class DCT {
 				for(int x=0; x<Compressor.N; x++){
 					output[h][w] += T[h][x] * M[x][w];
 				}
-				//System.out.print(output[h][w]);
 			}
-			//System.out.println("");
 		}
 		return output;
 	}
 	
+	/**
+	 * get matrix multiplication TxMxTtranspose
+	 * @param TM TxM matrix
+	 * @param T TxMxTtranspose
+	 * @return get matrix multiplication TxMxTtranspose
+	 */
 	public float[][] getD(float[][] TM, float[][] T){
 		float output[][] = new float[Compressor.N][Compressor.N];
 		for(int h=0; h<Compressor.N; h++){
@@ -154,11 +158,8 @@ public class DCT {
 				for(int x=0; x<Compressor.N; x++){
 					output[h][w] += TM[h][x] * T[x][w];
 				}
-				//System.out.print(output[h][w]);
 			}
-			//System.out.println("");
 		}
 		return output;
 	}
-
 }

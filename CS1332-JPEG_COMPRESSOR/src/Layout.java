@@ -15,26 +15,27 @@ import javax.swing.JTextField;
 
 
 public class Layout extends GroupLayout {
+	// init, max, min value for quality slider
 	private int QT_MAX = 100;
 	private int QT_MIN = 1;
 	private int QT_INIT = 50;
-	
+	// layout components
 	private JLabel lbImportDir, lbExportDir, lbQuality;
 	private JTextField tfImportDir, tfExportDir;
 	private JButton btImportDir, btConvert;
 	private Checkbox cbColor, cbGray;
 	private JSlider sdQuality;
-	
+	// image compressor engine
 	Compressor compressor;
 	
 	public Layout(Container host) {
 		super(host);
+		// create Compressor object
 		compressor = new Compressor();
-		
+		// JPanel property set
 		this.setAutoCreateGaps(true);
 		this.setAutoCreateContainerGaps(true);
-   
-		// Element Intialize
+		// element initialize
 		lbImportDir = new JLabel("Import Directory: ");
 		lbExportDir = new JLabel("Export Directory: ");
 		lbQuality = new JLabel("JPEG Quality: ");
@@ -105,6 +106,10 @@ public class Layout extends GroupLayout {
 		cbGray.addItemListener(new CheckGray());
 	}
 	
+	/**
+	 * Event listener for checking color mode
+	 *
+	 */
 	private class CheckColor implements ItemListener{
 		public void itemStateChanged(ItemEvent arg0) {
 			cbColor.setState(true);
@@ -112,6 +117,10 @@ public class Layout extends GroupLayout {
 		}
 	}
 	
+	/**
+	 * Event listener for checking gray scale mode
+	 *
+	 */
 	private class CheckGray implements ItemListener{
 		public void itemStateChanged(ItemEvent arg0) {
 			cbColor.setState(false);
@@ -119,6 +128,10 @@ public class Layout extends GroupLayout {
 		}
 	}
 	
+	/**
+	 * File open browser class
+	 *
+	 */
 	private class FileOpen implements ActionListener{
 
 		@Override
@@ -133,16 +146,19 @@ public class Layout extends GroupLayout {
 				File outFile = new File(outFileDir);
 				int i = 1;
 				while (outFile.exists()) {
-					outFileDir = fileDir.substring(0, fileDir.lastIndexOf(".")) + (i++) + ".jpg";
+					outFileDir = fileDir.substring(0, fileDir.lastIndexOf(".")) + "_" + (i++) + ".jpg";
 					outFile = new File(outFileDir);
 				}
-				
 				tfExportDir.setText(outFileDir);
 				btConvert.addActionListener(new StartConvert(fileDir, outFileDir));
 			}
 		}
 	}
 	
+	/**
+	 * Event listener for clicking 'Start Converting' button
+	 *
+	 */
 	private class StartConvert implements ActionListener{
 		private String fileDir, outFileDir;
 		public StartConvert(String _fileDir, String _outFileDir){
