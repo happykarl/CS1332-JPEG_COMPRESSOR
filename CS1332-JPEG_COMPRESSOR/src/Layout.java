@@ -27,6 +27,7 @@ public class Layout extends GroupLayout {
 	private JSlider sdQuality;
 	// image compressor engine
 	Compressor compressor;
+	StartConvert stConvert;
 	
 	public Layout(Container host) {
 		super(host);
@@ -104,6 +105,8 @@ public class Layout extends GroupLayout {
 		cbColor.addItemListener(new CheckColor());
 		cbColor.setState(true);
 		cbGray.addItemListener(new CheckGray());
+		stConvert = new StartConvert();
+		
 	}
 	
 	/**
@@ -150,7 +153,9 @@ public class Layout extends GroupLayout {
 					outFile = new File(outFileDir);
 				}
 				tfExportDir.setText(outFileDir);
-				btConvert.addActionListener(new StartConvert(fileDir, outFileDir));
+				btConvert.removeActionListener(stConvert);
+				btConvert.addActionListener(stConvert);
+				stConvert.setDir(fileDir, outFileDir);
 			}
 		}
 	}
@@ -161,7 +166,7 @@ public class Layout extends GroupLayout {
 	 */
 	private class StartConvert implements ActionListener{
 		private String fileDir, outFileDir;
-		public StartConvert(String _fileDir, String _outFileDir){
+		public void setDir(String _fileDir, String _outFileDir){
 			fileDir = _fileDir;
 			outFileDir = _outFileDir;
 		}

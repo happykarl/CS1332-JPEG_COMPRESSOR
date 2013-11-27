@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class Huffman {
 	public int[][] DC_matrix;
 	public int[][] AC_matrix;
-	
+	// Huffman Prefix Table
 	public Integer[] bitsDCluminance = { 0x00, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 	public Integer[] valDCluminance = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 	public Integer[] bitsACluminance = { 0x10, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d };
@@ -44,7 +44,6 @@ public class Huffman {
 		AC_matrix = new int[255][2];
 		int[] huffsize = new int[257];
 		int[] huffcode = new int[257];
-		
 		
 		// Init of the DC values for the luminance
 		int p = 0;
@@ -98,7 +97,6 @@ public class Huffman {
 			AC_matrix[valACluminance[q]][0] = huffcode[q];
 			AC_matrix[valACluminance[q]][1] = huffsize[q];
 		}
-		
 	}
 	
 	public void encode(int zigzag[], int prec) {		
@@ -146,13 +144,13 @@ public class Huffman {
 				r = 0;
 			}
 		}
+		// End of block (0, 0) pair
 		if (r > 0) {
 			writer.bufferIt(AC_matrix[0][0], AC_matrix[0][1]);
 		}
 	}
-
+	
 	public void setWriter(ImageWriter _writer) {
 		writer = _writer;
 	}
-
 }
